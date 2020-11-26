@@ -42,7 +42,7 @@ private:
         cpr::Response r = cpr::Get(cpr::Url(base_url + image_api),
                                    cpr::Parameters{
                                        {"format", "js"},
-                                       {"idx", index},
+                                       {"idx", move(index)},
                                        {"n", "1"},
                                        {"uhd", "1"},
                                        {"uhdwidth", "3840"},
