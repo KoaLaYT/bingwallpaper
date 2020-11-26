@@ -5,10 +5,14 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <regex>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 
 #include "cxxopts.hpp"
+
+#define LOG(...) fmt::print(__VA_ARGS__);
+#define ERROR(...) fmt::print(stderr, __VA_ARGS__);
 
 using json = nlohmann::json;
 using namespace std;
@@ -61,9 +65,9 @@ private:
 
     void save_image(const string& url)
     {
-        fmt::print("Fetch image from: {}\n", url);
+        LOG("Fetch image from: {}\n", url);
         cpr::Response r = cpr::Get(cpr::Url(url));
-        fmt::print("Image Fetched\n");
+        LOG("Image Fetched\n");
 
         auto imagename = parse_imagename(url);
         ofstream ofs{fmt::format("{}/{}", base_dir, imagename)};
@@ -72,9 +76,9 @@ private:
             return;
         }
 
-        fmt::print("Save image as: {}\n", imagename);
+        LOG("Save image as: {}\n", imagename);
         ofs << r.text;
-        fmt::print("Image saved\n");
+        LOG("Image saved\n");
     }
 };
 
@@ -92,7 +96,7 @@ int main(int argc, char** argv)
         auto result = options.parse(argc, argv);
 
         if (result.count("help")) {
-            fmt::print("{}\n", options.help());
+            LOG("{}\n", options.help());
             return 0;
         }
 
@@ -100,15 +104,20 @@ int main(int argc, char** argv)
         string idx = result["index"].as<string>();
 
         if (!filesystem::is_directory(dir)) {
-            fmt::print("{} is not a valid directory\n", dir);
-            return 1;
+            throw runtime_error{fmt::format("{} is not a valid directory\n", dir)};
         }
 
         BingFetcher bf{dir, idx};
         bf.fetch();
     } catch (cxxopts::OptionException e) {
-        fmt::print("error: {}\n\n", e.what());
-        fmt::print("{}\n", options.help());
+        ERROR("error: {}\n\n", e.what());
+        LOG("{}\n", options.help());
         return 1;
+    } catch (runtime_error e) {
+        ERROR("error: {}\n", e.what());
+        return 2;
+    } catch (exception e) {
+        ERROR("unknown error\n");
+        return 3;
     }
 }
