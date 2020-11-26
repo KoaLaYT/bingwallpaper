@@ -72,7 +72,7 @@ private:
         auto imagename = parse_imagename(url);
         ofstream ofs{fmt::format("{}/{}", base_dir, imagename)};
         if (!ofs.is_open()) {
-            fmt::print("Can't open file: {}\n", imagename);
+            LOG("Can't open file: {}\n", imagename);
             return;
         }
 
